@@ -5,19 +5,19 @@ const steps = [
   {
     icon: <Upload size={32} className="text-white" />,
     title: 'Upload Media',
-    description: 'Upload an image or video, or use your webcam to capture media for analysis.',
+    description: 'Upload an image or video, or use your webcam to analyze content for deepfake detection.',
     color: 'bg-primary-600'
   },
   {
     icon: <BarChart2 size={32} className="text-white" />,
     title: 'AI Analysis',
-    description: 'Our advanced algorithms analyze the media for manipulation patterns and inconsistencies.',
+    description: 'Our model, trained on millions of samples, identifies manipulation patterns using advanced deep learning techniques.',
     color: 'bg-secondary-600'
   },
   {
     icon: <FileCheck size={32} className="text-white" />,
     title: 'Get Results',
-    description: 'Receive detailed results showing deepfake probability and manipulated regions.',
+    description: 'Receive a detailed report with confidence scores and extracted frames highlighting manipulated areas.',
     color: 'bg-accent-600'
   }
 ];
@@ -34,10 +34,9 @@ const HowItWorksSection: React.FC = () => {
             How DeepGuard Works
           </h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Our deepfake detection platform uses state-of-the-art deep learning models to identify manipulated media with exceptional accuracy.
+            DeepGuard leverages a hybrid AI architecture developed by NIET students to detect deepfakes with exceptional precision.
           </p>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {steps.map((step, index) => (
             <div 
@@ -58,7 +57,6 @@ const HowItWorksSection: React.FC = () => {
             </div>
           ))}
         </div>
-
         <div className="mt-16 text-center">
           <a 
             href="#" 

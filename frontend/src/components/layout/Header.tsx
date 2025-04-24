@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Shield, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
@@ -10,6 +10,7 @@ const Header: React.FC = () => {
   const location = useLocation();
   const { status, user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const navigate = useNavigate();
 
   // Change header background on scroll
   useEffect(() => {
@@ -34,6 +35,11 @@ const Header: React.FC = () => {
     { name: 'How It Works', path: '/#how-it-works' },
     { name: 'About', path: '/#about' },
   ];
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <header
@@ -68,7 +74,13 @@ const Header: React.FC = () => {
 
           {/* Auth Buttons / User Profile */}
           <div className="hidden md:flex items-center space-x-4">
-            {status === 'authenticated' ? (
+            {status === 'loading' ? (
+              <span className={`font-medium transition-colors ${
+                isScrolled ? 'text-gray-700' : 'text-white'
+              }`}>
+                Loading...
+              </span>
+            ) : status === 'authenticated' ? (
               <div className="relative">
                 <button
                   onClick={toggleDropdown}
@@ -101,7 +113,7 @@ const Header: React.FC = () => {
                       Settings
                     </Link>
                     <button
-                      onClick={logout}
+                      onClick={handleLogout}
                       className="w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100"
                     >
                       Logout
@@ -158,7 +170,9 @@ const Header: React.FC = () => {
                   {link.name}
                 </Link>
               ))}
-              {status === 'authenticated' ? (
+              {status === 'loading' ? (
+                <span className="text-gray-800 py-2">Loading...</span>
+              ) : status === 'authenticated' ? (
                 <>
                   <Link
                     to="/dashboard"
@@ -167,7 +181,7 @@ const Header: React.FC = () => {
                     Dashboard
                   </Link>
                   <button
-                    onClick={logout}
+                    onClick={handleLogout}
                     className="text-left text-gray-800 hover:text-primary-600 py-2"
                   >
                     Logout

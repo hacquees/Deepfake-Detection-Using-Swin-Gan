@@ -33,7 +33,7 @@ const TeamSection: React.FC = () => {
             Research Team
           </span>
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-primary-800">
-            Meet the Innovators
+            Meet the Developers
           </h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
             A collaborative research project from the Department of Computer Science & Engineering at NIET

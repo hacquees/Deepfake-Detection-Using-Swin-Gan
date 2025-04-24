@@ -13,15 +13,17 @@ export interface DetectionResult {
     height: number;
     confidence: number;
   }>;
+  framePaths?: string[];
 }
 
 export interface User {
-  id: string;
+  id: number; // Change to number to match backend
   name: string;
   email: string;
-  avatarUrl?: string;
-  dateJoined: string;
-  detectionCount: number;
+  avatarUrl?: string; // Already optional
+  dateJoined?: string; // Make optional since backend doesn't provide it
+  detectionCount?: number; // Make optional since backend doesn't provide it
+  password?: string; // Add password as optional to match backend
 }
 
 export type AuthStatus = 'authenticated' | 'unauthenticated' | 'loading';

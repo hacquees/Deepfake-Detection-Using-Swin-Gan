@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, AuthStatus } from '../types';
+import axios from 'axios';
 
 interface AuthContextType {
   status: AuthStatus;
@@ -7,82 +8,94 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  loginWithGoogle: () => void;
+  loginWithMicrosoft: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock user data
-const mockUser: User = {
-  id: '1',
-  name: 'John Doe',
-  email: 'john@example.com',
-  avatarUrl: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=64&h=64&dpr=2',
-  dateJoined: '2023-01-15',
-  detectionCount: 24,
-};
+const API_URL = 'http://localhost:5000'; // Adjust to your backend URL
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // Check if user is already logged in (e.g., from localStorage)
-    const checkAuth = () => {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-        setStatus('authenticated');
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const response = await axios.get(`${API_URL}/api/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          // Backend returns id as number, and other fields are optional
+          setUser({
+            ...response.data,
+            id: response.data.id, // Already a number
+            dateJoined: response.data.dateJoined || '', // Provide default if missing
+            detectionCount: response.data.detectionCount || 0, // Provide default if missing
+            avatarUrl: response.data.avatarUrl || '', // Provide default if missing
+          });
+          setStatus('authenticated');
+        } catch {
+          localStorage.removeItem('token');
+          setStatus('unauthenticated');
+        }
       } else {
         setStatus('unauthenticated');
       }
     };
-
-    // Add a slight delay to simulate a real auth check
-    const timeoutId = setTimeout(checkAuth, 500);
-    return () => clearTimeout(timeoutId);
+    checkAuth();
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      // Simulate API request
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // In a real app, we would validate credentials with the backend
-      // For now, we'll just set the mock user
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      const response = await axios.post(`${API_URL}/api/login`, { email, password });
+      localStorage.setItem('token', response.data.token);
+      setUser({
+        ...response.data.user,
+        dateJoined: response.data.user.dateJoined || '',
+        detectionCount: response.data.user.detectionCount || 0,
+        avatarUrl: response.data.user.avatarUrl || '',
+      });
       setStatus('authenticated');
     } catch (error) {
-      console.error('Login failed:', error);
       throw new Error('Invalid credentials');
     }
   };
 
   const signup = async (name: string, email: string, password: string) => {
     try {
-      // Simulate API request
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // In a real app, we would create a new user with the backend
-      // For now, we'll just set the mock user
-      const newUser = { ...mockUser, name, email };
-      setUser(newUser);
-      localStorage.setItem('user', JSON.stringify(newUser));
+      const response = await axios.post(`${API_URL}/api/signup`, { name, email, password });
+      localStorage.setItem('token', response.data.token);
+      setUser({
+        ...response.data.user,
+        dateJoined: response.data.user.dateJoined || '',
+        detectionCount: response.data.user.detectionCount || 0,
+        avatarUrl: response.data.user.avatarUrl || '',
+      });
       setStatus('authenticated');
     } catch (error) {
-      console.error('Signup failed:', error);
       throw new Error('Could not create account');
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('user');
+    localStorage.removeItem('token');
     setUser(null);
     setStatus('unauthenticated');
   };
 
+  const loginWithGoogle = () => {
+    window.location.href = `${API_URL}/auth/google`; // Redirect to Google OAuth
+  };
+
+  const loginWithMicrosoft = () => {
+    window.location.href = `${API_URL}/auth/microsoft`; // Redirect to Microsoft OAuth
+  };
+
   return (
-    <AuthContext.Provider value={{ status, user, login, signup, logout }}>
+    <AuthContext.Provider value={{ status, user, login, signup, logout, loginWithGoogle, loginWithMicrosoft }}>
       {children}
     </AuthContext.Provider>
   );

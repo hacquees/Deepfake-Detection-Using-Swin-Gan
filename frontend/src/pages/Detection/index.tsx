@@ -4,6 +4,7 @@ import Footer from '../../components/layout/Footer';
 import UploadSection from './UploadSection';
 import ResultsSection from './ResultsSection';
 import { DetectionResult } from '../../types';
+import axios from 'axios';
 
 const Detection: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -15,31 +16,27 @@ const Detection: React.FC = () => {
       setError(null);
       setIsProcessing(true);
       setResult(null);
-      
-      // Simulate API processing time
-      await new Promise(resolve => setTimeout(resolve, 2500));
-      
-      // Mock result - in a real app, this would come from the backend
-      const mockResult: DetectionResult = {
-        id: Math.random().toString(36).substring(2, 11),
+
+      const formData = new FormData();
+      if (file) formData.append('file', file);
+      formData.append('isWebcam', isWebcam.toString());
+
+      const response = await axios.post('http://localhost:5000/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const { prediction, confidence, frames } = response.data;
+      setResult({
+        id: Date.now().toString(),
         timestamp: new Date().toISOString(),
         filename: file ? file.name : 'webcam-capture.jpg',
         fileType: file?.type.includes('video') ? 'video' : 'image',
         fileUrl: file ? URL.createObjectURL(file) : 'https://images.pexels.com/photos/5473302/pexels-photo-5473302.jpeg',
-        confidence: Math.random() > 0.3 ? 0.94 : 0.02,
-        isDeepfake: Math.random() > 0.3,
-        regions: Math.random() > 0.3 ? [
-          {
-            x: 120,
-            y: 80,
-            width: 200,
-            height: 200,
-            confidence: 0.97
-          }
-        ] : undefined
-      };
-      
-      setResult(mockResult);
+        confidence: confidence / 100,
+        isDeepfake: prediction === 'FAKE',
+        regions: confidence > 0.7 ? [{ x: 120, y: 80, width: 200, height: 200, confidence: 0.97 }] : undefined,
+        framePaths: frames,
+      });
     } catch (err) {
       setError('An error occurred during detection. Please try again.');
       console.error(err);
@@ -62,22 +59,11 @@ const Detection: React.FC = () => {
                 Upload an image or video, or use your webcam to detect potential deepfakes with our advanced AI technology.
               </p>
             </div>
-            
             <div className="max-w-4xl mx-auto">
               {!result ? (
-                <UploadSection 
-                  onUpload={handleUpload} 
-                  isProcessing={isProcessing}
-                  error={error}
-                />
+                <UploadSection onUpload={handleUpload} isProcessing={isProcessing} error={error} />
               ) : (
-                <ResultsSection 
-                  result={result} 
-                  onReset={() => {
-                    setResult(null);
-                    setError(null);
-                  }}
-                />
+                <ResultsSection result={result} onReset={() => { setResult(null); setError(null); }} />
               )}
             </div>
           </div>
